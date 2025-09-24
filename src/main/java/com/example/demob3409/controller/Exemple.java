@@ -1,6 +1,8 @@
 package com.example.demob3409.controller;
 
 import com.example.demob3409.dto.AgeDto;
+import com.example.demob3409.dto.CategoriePrixDto;
+import com.example.demob3409.dto.ProduitDto;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -57,6 +61,29 @@ public class Exemple {
         Integer Age = Period.between(birthdate, LocalDate.now()).getYears();
         return new ResponseEntity(Age, HttpStatusCode.valueOf(200));
     }
+
+    @PostMapping("basket")
+   public ResponseEntity liste_course(@RequestBody List<ProduitDto> liste_produit){
+
+        List<String> categories = liste_produit.stream()
+                .map(ProduitDto::getCategorie).distinct().toList();
+        List<CategoriePrixDto> result = new ArrayList();
+        for( String categorie :  categories){
+            // on cree un nouvel element
+            CategoriePrixDto dto = new CategoriePrixDto();
+            dto.setCatgorie(categorie);
+            dto.setPrix_total(getPrixByCategorie(liste_produit, categorie));
+            result.add(dto);
+        }
+        return new ResponseEntity<>(result, HttpStatusCode.valueOf(200));
+   }
+
+   private Double getPrixByCategorie(List<ProduitDto> liste_produit, String categorie){
+        // j'ai ma liste d'element pour une sue
+        return liste_produit.stream().filter(produit -> produit.getCategorie().equals(categorie)) // Gardez seulement les produits du type désiré
+                .mapToDouble(element -> element.getPrix()) // Convertissez le stream d'objets en stream de doubles (prix)
+                .sum();
+   }
 
 
 
